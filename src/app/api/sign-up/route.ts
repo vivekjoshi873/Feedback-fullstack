@@ -2,7 +2,6 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
-import { success } from "zod";
 
 export async function POST(request: Request) {
   await dbConnect();
@@ -21,6 +20,68 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    const existingUserByEmail = await UserModel.findOne({ email });
+    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+    if (existingUserByEmail) {
+      if (existingUserByEmail.isVerified) {
+        return Response.json(
+          {
+            success: false,
+            message: "User already exist with this email",
+          },
+          {
+            status: 400,
+          }
+        );
+      } else {
+        const hashpassword = await bcrypt.hash(password, 10);
+        existingUserByEmail.password = hashpassword;
+        existingUserByEmail.verifyCode = verifyCode;
+        existingUserByEmail.verifyCodeExpire = new Date(Date.now() + 3600000);
+        await existingUserByEmail.save();
+      }
+    } else {
+      const hashpassword = await bcrypt.hash(password, 10);
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1);
+
+      const newUser = new UserModel({
+        username,
+        email,
+        password: hashpassword,
+        verifyCode,
+        verifyCodeExpire: expiryDate,
+        isVerified: false,
+        isAcceptingMessage: true,
+        messages: [],
+      });
+      await newUser.save();
+    }
+    const emailReponse = await sendVerificationEmail(
+      email,
+      username,
+      verifyCode
+    );
+    if (!emailReponse.success) {
+      return Response.json(
+        {
+          success: false,
+          message: emailReponse.message,
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+    return Response.json(
+      {
+        success: true,
+        message: "User resgitered successfully. Please verify your email",
+      },
+      {
+        status: 201,
+      }
+    );
   } catch (error) {
     console.log("Error registering user", error);
     return Response.json(
