@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user._id = token._id;
         session.user.isVerified = token.isVerified;
         session.user.isAcceptingMessage = token.isAcceptingMessage;
