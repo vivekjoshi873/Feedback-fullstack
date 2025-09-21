@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, mongo } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface Message extends Document {
   content: string;
@@ -34,7 +34,6 @@ const UserSchema: Schema<User> = new Schema({
     required: [true, "Username is required"],
     trim: true,
     unique: true,
-    sparse: true
   },
   email: {
     type: String,
