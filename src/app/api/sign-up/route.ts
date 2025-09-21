@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         const hashpassword = await bcrypt.hash(password, 10);
         existingUserByEmail.password = hashpassword;
         existingUserByEmail.verifyCode = verifyCode;
-        existingUserByEmail.verifyCodeExpire = new Date(Date.now() + 3600000);
+        existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
         await existingUserByEmail.save();
       }
     } else {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         email,
         password: hashpassword,
         verifyCode,
-        verifyCodeExpire: expiryDate,
+        verifyCodeExpiry: expiryDate,
         isVerified: false,
         isAcceptingMessage: true,
         messages: [],
