@@ -6,8 +6,8 @@ import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
 export async function POST(request: Request) {
   await dbConnect();
   try {
-    const { userName, email, password } = await request.json();
-    if (!userName || !email || !password) {
+    const { username, email, password } = await request.json();
+    if (!username || !email || !password) {
       return Response.json(
         {
           success: false,
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       );
     }
     const existingUserVerifiedByUsername = await UserModel.findOne({
-      userName,
+      username,
       isVerified: true,
     });
     if (existingUserVerifiedByUsername) {
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       expiryDate.setHours(expiryDate.getHours() + 1);
 
       const newUser = new UserModel({
-        userName,
+        username,
         email,
         password: hashpassword,
         verifyCode,
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     }
     const emailReponse = await sendVerificationEmail(
       email,
-      userName,
+      username,
       verifyCode
     );
     if (!emailReponse.success) {

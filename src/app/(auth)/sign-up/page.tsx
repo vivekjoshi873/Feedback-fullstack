@@ -33,7 +33,7 @@ export default function SignUpForm() {
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      userName: "",
+      username: "",
       email: "",
       password: "",
     },
@@ -46,7 +46,7 @@ export default function SignUpForm() {
         setUsernameMessage("");
         try {
           const response = await axios.get<ApiResponse>(
-            `/api/check-username-unique?userName=${debouncedUsername}`
+            `/api/check-username-unique?username=${debouncedUsername}`
           );
           setUsernameMessage(response.data.message);
         } catch (error) {
@@ -102,7 +102,7 @@ export default function SignUpForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
-              name="userName"
+              name="username"
               control={form.control}
               render={({ field }) => (
                 <FormItem>
