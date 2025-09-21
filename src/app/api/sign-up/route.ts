@@ -6,9 +6,9 @@ import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
 export async function POST(request: Request) {
   await dbConnect();
   try {
-    const { username, email, password } = await request.json();
+    const { userName, email, password } = await request.json();
     const existingUserVerifiedByUsername = await UserModel.findOne({
-      username,
+      userName,
       isVerified: true,
     });
     if (existingUserVerifiedByUsername) {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       expiryDate.setHours(expiryDate.getHours() + 1);
 
       const newUser = new UserModel({
-        username,
+        userName,
         email,
         password: hashpassword,
         verifyCode,
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }
     const emailReponse = await sendVerificationEmail(
       email,
-      username,
+      userName,
       verifyCode
     );
     if (!emailReponse.success) {
@@ -83,15 +83,14 @@ export async function POST(request: Request) {
       }
     );
   } catch (error) {
-    console.log("Error registering user", error);
+    console.error("Error registering user", error);
     return Response.json(
       {
         success: false,
-        message: "Error registering user",
+        message: "User validation failed",
+        error,
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

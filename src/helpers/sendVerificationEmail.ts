@@ -1,4 +1,4 @@
-import { resend } from "@/lib/resend";
+import { getResendClient } from "@/lib/resend";
 import VerificationEmail from "../../emails/VerficationEmail";
 import { ApiResponse } from "@/types/ApiResponse";
 
@@ -8,9 +8,23 @@ export async function sendVerificationEmail(
   verifyCode: string
 ): Promise<ApiResponse> {
   try {
-    await resend.emails.send({
+    let resendClient;
+    try {
+      resendClient = getResendClient();
+    } catch (err) {
+      // If there's no API key, avoid crashing the whole request. In development
+      // we can skip sending the email and return success so flows continue.
+  const errMsg = err instanceof Error ? err.message : String(err);
+  console.warn("Resend client not available:", errMsg);
+      if (process.env.NODE_ENV === "production") {
+        return { success: false, message: "Missing email provider configuration" };
+      }
+      return { success: true, message: "Email sending skipped in development" };
+    }
+
+    await resendClient.emails.send({
       from: "onboarding@resending.dev",
-      to: "email",
+      to: email,
       subject: "Feedback Message | Verification Code",
       react: VerificationEmail({ username, otp: verifyCode }),
     });

@@ -6,7 +6,7 @@ export const usernameValidation = z
   .regex(/^[a-zA-Z0-9]+$/, "Username must not conatin special characters");
 
 export const signUpSchema = z.object({
-  username: usernameValidation,
+  userName: usernameValidation,
   email: z.string().email({ message: "invalid email address" }),
   password: z
     .string()
