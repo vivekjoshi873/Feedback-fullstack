@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Message } from "@/models/User";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -29,14 +29,56 @@ function page() {
       const response = await axios.get<ApiResponse>("/api/accept-messages");
       setValue("acceptMessages", response.data.isAcceptingMessage);
     } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>
-      toast("error",{
-        description:axiosError.response?.data.message||"failed to fetch message settings."
-      })
-    }finally{
+      const axiosError = error as AxiosError<ApiResponse>;
+      toast("error", {
+        description:
+          axiosError.response?.data.message ||
+          "failed to fetch message settings.",
+      });
+    } finally {
       setIsSwitchLoading(false);
     }
   }, [setValue]);
+  const fetchMessages = useCallback(
+    async (refresh: boolean = false) => {
+      setIsLoading(true);
+      setIsSwitchLoading(false);
+      try {
+        const response = await axios.get<ApiResponse>("/api/get/messages");
+        setMessages(response.data.messages || []);
+        if (refresh) {
+          toast("Refershed messages", {
+            description: "Showing latest messages",
+          });
+        }
+      } catch (error) {
+        const axiosError = error as AxiosError<ApiResponse>;
+        toast("error", {
+          description:
+            axiosError.response?.data.message ||
+            "failed to fetch message settings.",
+        });
+      } finally {
+        setIsLoading(false);
+        setIsSwitchLoading(false);
+      }
+    },
+    [setIsLoading, setMessages]
+  );
+  useEffect(() => {
+    if (!session || !session.user)  return
+    fetchMessages()
+    fetchAcceptMessage()
+  }, [session, setValue, fetchMessages, fetchAcceptMessage]);
+  const handleSwitchChange = async()=>{
+    try {
+      await axios.post<ApiResponse>("/api/accept-messages",{
+        acceptMessages:!acceptMessages
+      })
+    } catch (error) {
+      
+    }
+  }
   return <div></div>;
 }
 
